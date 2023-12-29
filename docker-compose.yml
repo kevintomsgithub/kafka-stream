@@ -52,8 +52,24 @@ services:
     depends_on:
       - kafka
 
-  kafka-consumer:
-    container_name: kafka-consumer
+  kafka-consumer-topic-A:
+    container_name: kafka-consumer-A
+    image: local/kafka-python:1.0.0
+    build:
+      context: ./application
+    volumes:
+      - ./application:/app
+    environment:
+      - "KAFKA_SERVER=kafka:9092"
+    working_dir: /app
+    entrypoint: /bin/bash
+    stdin_open: true
+    tty: true
+    depends_on:
+      - kafka
+
+  kafka-consumer-topic-B:
+    container_name: kafka-consumer-B
     image: local/kafka-python:1.0.0
     build:
       context: ./application

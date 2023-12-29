@@ -1,0 +1,69 @@
+version: "3.8"
+services:
+  zookeeper:
+    container_name: zookeeper
+    image: local/zookeeper:2.7.0
+    # image: confluentinc/cp-zookeeper:latest
+    build:
+      context: ./zookeeper
+    volumes:
+      - ./zookeeper/zookeeper.properties:/kafka/config/zookeeper.properties
+      - ./zookeeper/data:/tmp/zookeeper/
+    # environment:
+    #   ZOOKEEPER_CLIENT_PORT: 2181
+    #   ZOOKEEPER_TICK_TIME: 2000
+    # ports:
+    #   - 22181:2181
+
+  kafka:
+    container_name: kafka
+    image: local/kafka:2.7.0
+    # image: confluentinc/cp-kafka:latest
+    build:
+      context: ./kafka
+    volumes:
+      - ./kafka/server.properties:/kafka/config/server.properties
+      - ./kafka/data:/tmp/kafka-logs/
+    # environment:
+    #   KAFKA_BROKER_ID: 1
+    #   KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    #   KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+    #   KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+    #   KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+    #   KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    # ports:
+    #   - 29092:29092
+    depends_on:
+      - zookeeper
+
+  kafka-producer:
+    container_name: kafka-producer
+    image: local/kafka-python:1.0.0
+    build:
+      context: ./application
+    volumes:
+      - ./application:/app
+    environment:
+      - "KAFKA_SERVER=kafka:9092"
+    working_dir: /app
+    entrypoint: /bin/bash
+    stdin_open: true
+    tty: true
+    depends_on:
+      - kafka
+
+  kafka-consumer:
+    container_name: kafka-consumer
+    image: local/kafka-python:1.0.0
+    build:
+      context: ./application
+    volumes:
+      - ./application:/app
+    environment:
+      - "KAFKA_SERVER=kafka:9092"
+    working_dir: /app
+    entrypoint: /bin/bash
+    stdin_open: true
+    tty: true
+    depends_on:
+      - kafka
